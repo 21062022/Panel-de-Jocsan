@@ -35,7 +35,7 @@ PUERTO=""; WSPORT=""; SSHPORT=22; BADVPN_PORT=7300
 BADVPN_STATE="OFF"; AUTOSTART_STATUS="OFF"; CRON_STATUS="OFF"; BBR_STATUS="OFF"
 BHTTP_UPLOAD=8; BHTTP_DOWNLOAD=16; BHTTP_BATCH=6; PORTS_INITIALIZED=0
 
-GITHUB_URL="https://raw.githubusercontent.com/21062022/intalar.sh/main/intalar.sh"
+GITHUB_URL="https://raw.githubusercontent.com/21062022/Panel-de-Jocsan/refs/heads/main/Panel%20SSH"
 GITHUB_URL_FILE="$CONFIG_DIR/github.url"   # URL propia (se guarda si la cambias en la opción 6)
 
 clear_screen(){ clear 2>/dev/null || true; }
@@ -420,13 +420,13 @@ instalar_servidor(){
 import argparse, asyncio, hashlib, os, socket, sys, time
 
 MAGIC=b"BHP1"
-READ_TIMEOUT=20.0
+READ_TIMEOUT=60.0
 BACKEND_CONNECT_TIMEOUT=10.0
-SESSION_IDLE_TIMEOUT=90.0
-SESSION_MAX_AGE=21600.0
+SESSION_IDLE_TIMEOUT=600.0
+SESSION_MAX_AGE=86400.0
 CLEANUP_INTERVAL=15.0
 LONGPOLL=2.0
-FRONTEND_GRACE=1.0
+FRONTEND_GRACE=45.0
 MAX_DOWN_BUFFER=8*1024*1024
 MAX_RETAIN=4*MAX_DOWN_BUFFER
 MAX_UP_PENDING=48
@@ -1006,15 +1006,15 @@ aplicar_keepalive_ssh(){
   [ -d "$dropin_dir" ] || return 0
   grep -qiE '^[[:space:]]*Include[[:space:]]+/etc/ssh/sshd_config\.d/' /etc/ssh/sshd_config 2>/dev/null || return 0
   # Ya está con los valores actuales: nada que hacer.
-  grep -qs 'ClientAliveInterval 15' "$dropin" && return 0
+  grep -qs 'ClientAliveInterval 30' "$dropin" && return 0
   [ -f "$dropin" ] && previo="$(cat "$dropin")"
 
   cat > "$dropin" <<'KEOF'
 # Detecta clientes caídos y libera su sesión (usado por el panel de usuarios en línea).
-# 15 s x 4 = ~60 s: suficiente para limpiar conexiones fantasma sin cortar a
-# quien solo perdió señal un momento (eso provocaba oleadas de reconexión).
-ClientAliveInterval 15
-ClientAliveCountMax 4
+# 30 s x 6 = ~3 min: tolera microcortes y cambios de antena en redes móviles
+# antes de cerrar una sesión que realmente dejó de responder.
+ClientAliveInterval 30
+ClientAliveCountMax 6
 TCPKeepAlive yes
 KEOF
 
